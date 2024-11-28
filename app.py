@@ -1,4 +1,6 @@
-from flask import Flask,render_template,request,redirect,url_for
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import os
 import numpy as np
 import pandas as pd
@@ -13,12 +15,38 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-app=Flask(__name__)
-app.config['SECRET_KEY']="djchbsdchsdbcjds"
-# app.config['upload']="C:\\Users\\whynew.in\\PycharmProjects\\Austism\\uploads"
-app.config['upload']= "C:\\Users\\sachi\\OneDrive\\Desktop\\autism\\autism\\PYCHARM CODE\\code\\uploads"
+# Flask app initialization and configurations
+app = Flask(__name__)
+app.config['SECRET_KEY'] = "djchbsdchsdbcjds"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///autism.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['upload'] = "C:\\Users\\sachi\\OneDrive\\Desktop\\autism\\autism\\PYCHARM CODE\\code\\uploads"
 
+# Database initialization
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
+# Database model
+class Assessment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    a1_score = db.Column(db.Integer)
+    a2_score = db.Column(db.Integer)
+    a3_score = db.Column(db.Integer)
+    a4_score = db.Column(db.Integer)
+    a5_score = db.Column(db.Integer)
+    a6_score = db.Column(db.Integer)
+    a7_score = db.Column(db.Integer)
+    a8_score = db.Column(db.Integer)
+    a9_score = db.Column(db.Integer)
+    a10_score = db.Column(db.Integer)
+    age = db.Column(db.Integer)
+    gender = db.Column(db.Integer)
+    jundice = db.Column(db.Integer)
+    autism = db.Column(db.Integer)
+    prediction_result = db.Column(db.String(100))
+    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
+# Your existing routes and code here
 @app.route('/')
 def index():
     return render_template('home.html')
@@ -187,62 +215,77 @@ def modelselection():
 
 @app.route('/prediction',methods=['POST',"GET"])
 def prediction():
-    print("hi gutys")
-    x_train
-    x_test
-    y_train
-    y_test
     if request.method=='POST':
+        # Your existing code for getting form data
         listn=[]
         a1=int(request.form['a1'])
-        print(a1)
-        a2=int(request.form['a2'])
-        print(a2)
-        a3 = int(request.form['a3'])
-        print(a3)
-        a4 = int(request.form['a4'])
-        print(a4)
-        a5 = int(request.form['a5'])
-        print(a5)
-        a6 = int(request.form['a6'])
-        print(a6)
-        a7 = int(request.form['a7'])
-        print(a7)
-        a8 = int(request.form['a8'])
-        print(a8)
-        a9 = int(request.form['a9'])
-        print(a9)
-        a10 = int(request.form['a10'])
-        print(a10)
-        age=int(request.form['age'])
-        print(age)
-        gender=int(request.form['gender'])
-        print(gender)
+        # ... (rest of your form data collection)
 
-        jundice=int(request.form['jundice'])
-        print(jundice)
-        austim=int(request.form['autism'])
-        print(austim)
-
-        listn.extend([a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,age,gender,jundice,austim])
-        print(listn)
-        print('111111111')
-        print(x_train.columns)
-        print('11111111')
-
+        # Make prediction
         model = SVC()
         model.fit(x_train, y_train)
         predi = model.predict([listn])
-        print(predi)
         pred = predi
-        print(pred)
+
+        # Create new assessment record
+        assessment = Assessment(
+            a1_score=a1,
+            a2_score=a2,
+            a3_score=a3,
+            a4_score=a4,
+            a5_score=a5,
+            a6_score=a6,
+            a7_score=a7,
+            a8_score=a8,
+            a9_score=a9,
+            a10_score=a10,
+            age=age,
+            gender=gender,
+            jundice=jundice,
+            autism=austim,
+            prediction_result="No ASD" if pred == [0] else "ASD Detected"
+        )
+        
+        # Save to database
+        db.session.add(assessment)
+        db.session.commit()
+
+        # Return result
         if pred == [0]:
             msg="children does'nt have autism spectrum disorder"
-            return render_template('final.html',msg=msg)
-        msg="children has autism spectrum disorder Please consult doctor"
+        else:
+            msg="children has autism spectrum disorder Please consult doctor"
         return render_template('final.html',msg=msg)
     return render_template("prediction.html")
+    
+@app.route('/history')
+def history():
+    # Get all assessments ordered by date
+    assessments = Assessment.query.order_by(Assessment.date_created.desc()).all()
+    return render_template('history.html', assessments=assessments)
+    search = request.args.get('search', '')
+    filter_result = request.args.get('filter', '')
+    
+    query = Assessment.query
+    
+    if search:
+        query = query.filter(
+            (Assessment.age.ilike(f'%{search}%')) |
+            (Assessment.prediction_result.ilike(f'%{search}%'))
+        )
+    
+    if filter_result:
+        query = query.filter(Assessment.prediction_result == filter_result)
+    
+    assessments = query.order_by(Assessment.date_created.desc()).all()
+    
+    return render_template('history.html', 
+                         assessments=assessments, 
+                         search=search, 
+                         filter_result=filter_result)
 
 if __name__=="__main__":
     app.run(debug=False)
+    
+
 

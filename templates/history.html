@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Assessment History</h2>
+    
+    <!-- Search and Filter -->
+    <div class="row mb-3">
+        <div class="col">
+            <form method="GET" class="form-inline">
+                <input type="text" name="search" class="form-control mr-2" placeholder="Search..." value="{{ search }}">
+                <select name="filter" class="form-control mr-2">
+                    <option value="">All Results</option>
+                    <option value="ASD Detected" {% if filter_result == 'ASD Detected' %}selected{% endif %}>ASD Detected</option>
+                    <option value="No ASD" {% if filter_result == 'No ASD' %}selected{% endif %}>No ASD</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <a href="{{ url_for('history') }}" class="btn btn-secondary ml-2">Reset</a>
+            </form>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('export_csv') }}" class="btn btn-success">Export to CSV</a>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Result</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assessment in assessments %}
+            <tr>
+                <td>{{ assessment.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ assessment.age }}</td>
+                <td>{{ "Male" if assessment.gender == 1 else "Female" }}</td>
+                <td>{{ assessment.prediction_result }}</td>
+                <td>
+                    <a href="{{ url_for('view_assessment', id=assessment.id) }}" class="btn btn-sm btn-info">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

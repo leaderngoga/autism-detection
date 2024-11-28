@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Assessment Details</h2>
+            <p class="text-muted">Date: {{ assessment.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Basic Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Age:</th>
+                            <td>{{ assessment.age }}</td>
+                        </tr>
+                        <tr>
+                            <th>Gender:</th>
+                            <td>{{ "Male" if assessment.gender == 1 else "Female" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Jaundice:</th>
+                            <td>{{ "Yes" if assessment.jundice == 1 else "No" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Autism Family Member:</th>
+                            <td>{{ "Yes" if assessment.autism == 1 else "No" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Assessment Scores</h4>
+                    <table class="table">
+                        <tr><th>Question 1:</th><td>{{ assessment.a1_score }}</td></tr>
+                        <tr><th>Question 2:</th><td>{{ assessment.a2_score }}</td></tr>
+                        <tr><th>Question 3:</th><td>{{ assessment.a3_score }}</td></tr>
+                        <tr><th>Question 4:</th><td>{{ assessment.a4_score }}</td></tr>
+                        <tr><th>Question 5:</th><td>{{ assessment.a5_score }}</td></tr>
+                        <tr><th>Question 6:</th><td>{{ assessment.a6_score }}</td></tr>
+                        <tr><th>Question 7:</th><td>{{ assessment.a7_score }}</td></tr>
+                        <tr><th>Question 8:</th><td>{{ assessment.a8_score }}</td></tr>
+                        <tr><th>Question 9:</th><td>{{ assessment.a9_score }}</td></tr>
+                        <tr><th>Question 10:</th><td>{{ assessment.a10_score }}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                    <div class="alert {{ 'alert-warning' if 'ASD Detected' in assessment.prediction_result else 'alert-success' }}">
+                        <h4>Prediction Result:</h4>
+                        <p class="mb-0">{{ assessment.prediction_result }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('history') }}" class="btn btn-primary">Back to History</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
